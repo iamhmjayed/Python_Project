@@ -1,61 +1,120 @@
 #Project_1 : BODY MASS INDEX (BMI)
 
-a = input("What is your name ? ")
-input ("What is your age ? ")
-print (f"Welcome {a} Lets check Your BMI")
-print("...................................")
+import tkinter as tk
+from tkinter import messagebox
 
-Height = float(input("Enter height in centimeter: "))
-weight = float(input("Enter weight in kilogram: "))
 
-Height = Height / 100
+def calculate_bmi():
+    name = name_entry.get()
+    age = age_entry.get()
+    if not name or not age:
+        messagebox.showerror("Error", "Please enter both name and age")
+        return
 
-BMI = weight / (Height * Height)
-print(f"\n{a} Your BMI is {BMI: .2f}")
+    try:
+        height = float(height_entry.get())
+        weight = float(weight_entry.get())
+    except ValueError:
+        messagebox.showerror("Error", "Please enter valid numbers for height and weight")
+        return
 
-if BMI <=18.4:
+    height_in_m = height / 100
+    bmi = weight / (height_in_m * height_in_m)
+    bmi_result.set(f"{name}, Your BMI is: {bmi:.2f}")
 
-    target_weight = 18.4 * (Height * Height)
-    weight_diff = target_weight - weight
-    if weight_diff > 0:
-        print(f"{a} You need to gain {weight_diff:.2f} kg to reach the perfect BMI of {18.5}.")
+    if bmi <= 18.4:
+        target_weight = 18.5 * (height_in_m * height_in_m)
+        weight_diff = target_weight - weight
+        if weight_diff > 0:
+            advice = f"{name}, You need to gain {weight_diff:.2f} kg to reach BMI of 18.5."
+        elif weight_diff < 0:
+            advice = f"{name}, You need to lose {abs(weight_diff):.2f} kg to reach BMI of 18.5."
+        else:
+            advice = f"{name}, You are already at the perfect BMI."
+        category = "Underweight"
 
-    elif weight_diff < 0:
-        print(f"{a} You need to lose {abs(weight_diff):.2f} kg to reach the perfect BMI of {18.5}.")
+    elif bmi <= 24.9:
+        advice = f"{name}, You are Normal. GOOD JOB"
+        category = "Normal weight"
+
+    elif bmi <= 39.9:
+        target_weight = 24.9 * (height_in_m * height_in_m)
+        weight_diff = target_weight - weight
+        if weight_diff > 0:
+            advice = f"{name}, You need to gain {weight_diff:.2f} kg to reach BMI of 24.9."
+        elif weight_diff < 0:
+            advice = f"{name}, You need to lose {abs(weight_diff):.2f} kg to reach BMI of 24.9."
+        else:
+            advice = f"{name}, You are already at the perfect BMI."
+        category = "Overweight"
+
     else:
-        print(f"{a} You are already at the perfect BMI.")
-    print(f"{a} Your are underweight")
+        target_weight = 24.9 * (height_in_m * height_in_m)
+        weight_diff = target_weight - weight
+        if weight_diff > 0:
+            advice = f"{name}, You need to gain {weight_diff:.2f} kg to reach BMI of 24.9."
+        elif weight_diff < 0:
+            advice = f"{name}, You need to lose {abs(weight_diff):.2f} kg to reach BMI of 24.9."
+        else:
+            advice = f"{name}, You are already at the perfect BMI."
+        category = "Obese"
+
+    advice_result.set(advice)
+    category_result.set(f"Category: {category}")
 
 
-elif BMI <= 24.9:
-    print(f"{a} Your are Normal. GOOD JOB ")
+# Create main window
+root = tk.Tk()
+root.title("BMI Calculator")
+root.geometry("400x400")
 
+# Welcome label
+welcome_label = tk.Label(root, text="Welcome to BMI Calculator", font=("Arial", 14, "bold"))
+welcome_label.pack(pady=10)
 
-elif BMI <= 39.9:
+# Name entry
+name_frame = tk.Frame(root)
+name_frame.pack(pady=5)
+tk.Label(name_frame, text="Name:").pack(side=tk.LEFT)
+name_entry = tk.Entry(name_frame)
+name_entry.pack(side=tk.LEFT, padx=5)
 
-    target_weight = 24.9 * (Height * Height)
-    weight_diff = target_weight - weight
-    if weight_diff > 0:
-        print(f"{a} You need to gain {weight_diff:.2f} kg to reach the perfect BMI of {24.9}.")
+# Age entry
+age_frame = tk.Frame(root)
+age_frame.pack(pady=5)
+tk.Label(age_frame, text="Age:").pack(side=tk.LEFT)
+age_entry = tk.Entry(age_frame)
+age_entry.pack(side=tk.LEFT, padx=5)
 
-    elif weight_diff < 0:
-        print(f"{a} You need to lose {abs(weight_diff):.2f} kg to reach the perfect BMI of {24.9}.")
-    else:
-        print(f"{a} You are already at the perfect BMI.")
+# Height entry
+height_frame = tk.Frame(root)
+height_frame.pack(pady=5)
+tk.Label(height_frame, text="Height (cm):").pack(side=tk.LEFT)
+height_entry = tk.Entry(height_frame)
+height_entry.pack(side=tk.LEFT, padx=5)
 
-    print(f"{a} Your are overweight")
+# Weight entry
+weight_frame = tk.Frame(root)
+weight_frame.pack(pady=5)
+tk.Label(weight_frame, text="Weight (kg):").pack(side=tk.LEFT)
+weight_entry = tk.Entry(weight_frame)
+weight_entry.pack(side=tk.LEFT, padx=5)
 
+# Calculate button
+calculate_btn = tk.Button(root, text="Calculate BMI", command=calculate_bmi)
+calculate_btn.pack(pady=10)
 
-else:
+# Results
+bmi_result = tk.StringVar()
+bmi_label = tk.Label(root, textvariable=bmi_result, font=("Arial", 12))
+bmi_label.pack(pady=5)
 
-    target_weight = 24.9 * (Height * Height)
-    weight_diff = target_weight - weight
-    if weight_diff > 0:
-        print(f"{a} You need to gain {weight_diff:.2f} kg to reach the perfect BMI of {24.9}.")
+category_result = tk.StringVar()
+category_label = tk.Label(root, textvariable=category_result, font=("Arial", 12))
+category_label.pack(pady=5)
 
-    elif weight_diff < 0:
-        print(f"{a} You need to lose {abs(weight_diff):.2f} kg to reach the perfect BMI of {24.9}.")
-    else:
-        print(f"{a} You are already at the perfect BMI.")
+advice_result = tk.StringVar()
+advice_label = tk.Label(root, textvariable=advice_result, font=("Arial", 10), wraplength=350)
+advice_label.pack(pady=5)
 
-    print(f"{a} Your are obese")
+root.mainloop()
