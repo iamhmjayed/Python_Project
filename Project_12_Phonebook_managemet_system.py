@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
+import json
+import os
 
 
 class PhonebookApp:
@@ -7,270 +9,439 @@ class PhonebookApp:
         self.root = root
         self.root.title("Phonebook Management System")
         self.root.geometry("600x500")
+        self.root.configure(bg="#f0f8ff")  # Light blue background
 
-        self.phonebook = {}
+        # Load contacts from file
+        self.phonebook = self.load_contacts()
 
-        # Create main frame
-        self.main_frame = tk.Frame(root, padx=20, pady=20)
-        self.main_frame.pack(expand=True, fill=tk.BOTH)
+        # Create main menu
+        self.create_main_menu()
 
-        # Title label
-        self.title_label = tk.Label(
-            self.main_frame,
+    def load_contacts(self):
+        """Load contacts from JSON file if it exists"""
+        if os.path.exists("phonebook.json"):
+            with open("phonebook.json", "r") as file:
+                return json.load(file)
+        return {}
+
+    def save_contacts(self):
+        """Save contacts to JSON file"""
+        with open("phonebook.json", "w") as file:
+            json.dump(self.phonebook, file)
+
+    def clear_screen(self):
+        """Clear all widgets from the screen"""
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def create_main_menu(self):
+        """Create the main menu screen"""
+        self.clear_screen()
+
+        # Main frame
+        main_frame = tk.Frame(self.root, bg="#f0f8ff", padx=20, pady=20)
+        main_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Title
+        title = tk.Label(
+            main_frame,
             text="PHONEBOOK MANAGEMENT SYSTEM",
-            font=("Arial", 16, "bold")
+            font=("Arial", 16, "bold"),
+            bg="#4682b4",  # Steel blue
+            fg="white",
+            padx=10,
+            pady=10
         )
-        self.title_label.pack(pady=10)
+        title.pack(fill=tk.X, pady=(0, 20))
 
-        # Create buttons for menu options
-        button_options = [
-            ("Add Contact", self.add_contact),
-            ("View Phonebook", self.view_phonebook),
-            ("Search Contact", self.search_contact),
-            ("Delete Contact", self.delete_contact),
-            ("About Developer", self.about_developer),
+        # Menu buttons
+        buttons = [
+            ("Add Contact", self.add_contact_screen),
+            ("View Contacts", self.view_contacts_screen),
+            ("Search Contact", self.search_contact_screen),
+            ("Delete Contact", self.delete_contact_screen),
             ("Exit", self.exit_app)
         ]
 
-        for text, command in button_options:
+        for text, command in buttons:
             btn = tk.Button(
-                self.main_frame,
+                main_frame,
                 text=text,
                 command=command,
                 width=20,
                 height=2,
-                bg="#4CAF50",
+                bg="#5f9ea0",  # Cadet blue
                 fg="white",
-                font=("Arial", 10)
+                font=("Arial", 10),
+                relief=tk.RAISED,
+                bd=2
             )
             btn.pack(pady=5)
 
-    def clear_frame(self, frame):
-        for widget in frame.winfo_children():
-            widget.destroy()
+    def add_contact_screen(self):
+        """Screen for adding new contacts"""
+        self.clear_screen()
 
-    def back_to_main(self):
-        self.clear_frame(self.main_frame)
-        self.__init__(self.root)
-
-    def add_contact(self):
-        self.clear_frame(self.main_frame)
+        # Main frame
+        main_frame = tk.Frame(self.root, bg="#f0f8ff", padx=20, pady=20)
+        main_frame.pack(expand=True, fill=tk.BOTH)
 
         # Title
-        tk.Label(self.main_frame, text="Add New Contact", font=("Arial", 14)).pack(pady=10)
+        title = tk.Label(
+            main_frame,
+            text="Add New Contact",
+            font=("Arial", 14, "bold"),
+            bg="#4682b4",
+            fg="white",
+            padx=10,
+            pady=10
+        )
+        title.pack(fill=tk.X, pady=(0, 20))
 
-        # Create form frame
-        form_frame = tk.Frame(self.main_frame)
+        # Form frame
+        form_frame = tk.Frame(main_frame, bg="#f0f8ff")
         form_frame.pack(pady=10)
 
-        # Name
-        tk.Label(form_frame, text="Name:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        name_entry = tk.Entry(form_frame, width=30)
-        name_entry.grid(row=0, column=1, padx=5, pady=5)
+        # Form fields
+        fields = ["Name:", "Phone:", "Email:", "Address:"]
+        self.entries = {}
 
-        # Age
-        tk.Label(form_frame, text="Age:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        age_entry = tk.Entry(form_frame, width=30)
-        age_entry.grid(row=1, column=1, padx=5, pady=5)
+        for i, field in enumerate(fields):
+            tk.Label(
+                form_frame,
+                text=field,
+                bg="#f0f8ff",
+                font=("Arial", 10)
+            ).grid(row=i, column=0, padx=5, pady=5, sticky="e")
 
-        # Phone
-        tk.Label(form_frame, text="Phone:").grid(row=2, column=0, padx=5, pady=5, sticky="e")
-        phone_entry = tk.Entry(form_frame, width=30)
-        phone_entry.grid(row=2, column=1, padx=5, pady=5)
+            entry = tk.Entry(form_frame, width=30, font=("Arial", 10))
+            entry.grid(row=i, column=1, padx=5, pady=5)
+            self.entries[field[:-1].lower()] = entry
 
-        # Submit button
-        submit_btn = tk.Button(
-            self.main_frame,
-            text="Add Contact",
-            command=lambda: self.save_contact(
-                name_entry.get(),
-                age_entry.get(),
-                phone_entry.get()
-            ),
+        # Button frame
+        button_frame = tk.Frame(main_frame, bg="#f0f8ff")
+        button_frame.pack(pady=20)
+
+        # Save button
+        save_btn = tk.Button(
+            button_frame,
+            text="Save Contact",
+            command=self.save_contact,
             width=15,
-            bg="#2196F3",
-            fg="white"
+            bg="#2e8b57",  # Sea green
+            fg="white",
+            font=("Arial", 10)
         )
-        submit_btn.pack(pady=10)
+        save_btn.grid(row=0, column=0, padx=10)
 
         # Back button
         back_btn = tk.Button(
-            self.main_frame,
+            button_frame,
             text="Back to Menu",
-            command=self.back_to_main,
+            command=self.create_main_menu,
             width=15,
-            bg="#f44336",
-            fg="white"
+            bg="#cd5c5c",  # Indian red
+            fg="white",
+            font=("Arial", 10)
         )
-        back_btn.pack(pady=5)
+        back_btn.grid(row=0, column=1, padx=10)
 
-    def save_contact(self, name, age, phone):
-        if not name or not age or not phone:
-            messagebox.showerror("Error", "All fields are required!")
-            return
+    def save_contact(self):
+        """Save the new contact to phonebook"""
+        contact = {}
+        for field, entry in self.entries.items():
+            value = entry.get().strip()
+            if not value and field == "name":
+                messagebox.showerror("Error", "Name is required!")
+                return
+            contact[field] = value
 
-        self.phonebook[name] = {'age': age, 'phone': phone}
-        messagebox.showinfo("Success", f"Contact for {name} added successfully!")
+        name = contact["name"]
+        self.phonebook[name] = contact
+        self.save_contacts()
 
-    def view_phonebook(self):
-        self.clear_frame(self.main_frame)
+        messagebox.showinfo("Success", f"Contact for {name} saved successfully!")
+        self.create_main_menu()
+
+    def view_contacts_screen(self):
+        """Screen to view all contacts"""
+        self.clear_screen()
+
+        # Main frame
+        main_frame = tk.Frame(self.root, bg="#f0f8ff", padx=20, pady=20)
+        main_frame.pack(expand=True, fill=tk.BOTH)
 
         # Title
-        tk.Label(self.main_frame, text="Phonebook Contacts", font=("Arial", 14)).pack(pady=10)
+        title = tk.Label(
+            main_frame,
+            text="All Contacts",
+            font=("Arial", 14, "bold"),
+            bg="#4682b4",
+            fg="white",
+            padx=10,
+            pady=10
+        )
+        title.pack(fill=tk.X, pady=(0, 20))
 
         if not self.phonebook:
-            tk.Label(self.main_frame, text="Phonebook is empty.").pack(pady=10)
+            tk.Label(
+                main_frame,
+                text="No contacts found.",
+                bg="#f0f8ff",
+                font=("Arial", 12)
+            ).pack(pady=50)
         else:
-            # Create treeview to display contacts
-            tree = ttk.Treeview(self.main_frame, columns=("Name", "Age", "Phone"), show="headings")
+            # Treeview to display contacts
+            tree_frame = tk.Frame(main_frame, bg="#f0f8ff")
+            tree_frame.pack(fill=tk.BOTH, expand=True)
+
+            scrollbar = ttk.Scrollbar(tree_frame)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+            tree = ttk.Treeview(
+                tree_frame,
+                columns=("Name", "Phone", "Email"),
+                show="headings",
+                yscrollcommand=scrollbar.set
+            )
+
+            # Configure columns
             tree.heading("Name", text="Name")
-            tree.heading("Age", text="Age")
             tree.heading("Phone", text="Phone")
+            tree.heading("Email", text="Email")
 
-            # Add contacts to treeview
+            tree.column("Name", width=150)
+            tree.column("Phone", width=120)
+            tree.column("Email", width=180)
+
+            # Add contacts
             for name, details in self.phonebook.items():
-                tree.insert("", tk.END, values=(name, details['age'], details['phone']))
+                tree.insert("", tk.END, values=(
+                    name,
+                    details.get("phone", ""),
+                    details.get("email", "")
+                ))
 
-            tree.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+            tree.pack(fill=tk.BOTH, expand=True)
+            scrollbar.config(command=tree.yview)
 
         # Back button
         back_btn = tk.Button(
-            self.main_frame,
+            main_frame,
             text="Back to Menu",
-            command=self.back_to_main,
+            command=self.create_main_menu,
             width=15,
-            bg="#f44336",
-            fg="white"
+            bg="#cd5c5c",
+            fg="white",
+            font=("Arial", 10)
         )
-        back_btn.pack(pady=10)
+        back_btn.pack(pady=20)
 
-    def search_contact(self):
-        self.clear_frame(self.main_frame)
+    def search_contact_screen(self):
+        """Screen to search for contacts"""
+        self.clear_screen()
+
+        # Main frame
+        main_frame = tk.Frame(self.root, bg="#f0f8ff", padx=20, pady=20)
+        main_frame.pack(expand=True, fill=tk.BOTH)
 
         # Title
-        tk.Label(self.main_frame, text="Search Contact", font=("Arial", 14)).pack(pady=10)
+        title = tk.Label(
+            main_frame,
+            text="Search Contact",
+            font=("Arial", 14, "bold"),
+            bg="#4682b4",
+            fg="white",
+            padx=10,
+            pady=10
+        )
+        title.pack(fill=tk.X, pady=(0, 20))
 
         # Search frame
-        search_frame = tk.Frame(self.main_frame)
-        search_frame.pack(pady=10)
+        search_frame = tk.Frame(main_frame, bg="#f0f8ff")
+        search_frame.pack(pady=20)
 
-        tk.Label(search_frame, text="Enter Name:").pack(side=tk.LEFT, padx=5)
-        search_entry = tk.Entry(search_frame, width=30)
-        search_entry.pack(side=tk.LEFT, padx=5)
+        tk.Label(
+            search_frame,
+            text="Enter Name:",
+            bg="#f0f8ff",
+            font=("Arial", 10)
+        ).pack(side=tk.LEFT, padx=5)
 
-        # Result label
-        result_label = tk.Label(self.main_frame, text="", wraplength=400)
-        result_label.pack(pady=10)
+        self.search_entry = tk.Entry(search_frame, width=30, font=("Arial", 10))
+        self.search_entry.pack(side=tk.LEFT, padx=5)
 
         # Search button
         search_btn = tk.Button(
-            self.main_frame,
+            search_frame,
             text="Search",
-            command=lambda: self.perform_search(search_entry.get(), result_label),
-            width=15,
-            bg="#2196F3",
-            fg="white"
+            command=self.search_contact,
+            width=10,
+            bg="#5f9ea0",
+            fg="white",
+            font=("Arial", 10)
         )
-        search_btn.pack(pady=5)
+        search_btn.pack(side=tk.LEFT, padx=5)
+
+        # Result frame
+        self.result_frame = tk.Frame(main_frame, bg="#f0f8ff")
+        self.result_frame.pack(fill=tk.BOTH, expand=True, pady=10)
 
         # Back button
         back_btn = tk.Button(
-            self.main_frame,
+            main_frame,
             text="Back to Menu",
-            command=self.back_to_main,
+            command=self.create_main_menu,
             width=15,
-            bg="#f44336",
-            fg="white"
+            bg="#cd5c5c",
+            fg="white",
+            font=("Arial", 10)
         )
-        back_btn.pack(pady=5)
+        back_btn.pack(pady=20)
 
-    def perform_search(self, name, result_label):
+    def search_contact(self):
+        """Search for a contact by name"""
+        name = self.search_entry.get().strip()
+
         if not name:
             messagebox.showerror("Error", "Please enter a name to search!")
             return
 
-        if name in self.phonebook:
-            details = self.phonebook[name]
-            result_label.config(
-                text=f"Name: {name}\nAge: {details['age']}\nPhone: {details['phone']}",
-                fg="green"
-            )
-        else:
-            result_label.config(text="Contact not found.", fg="red")
+        # Clear previous results
+        for widget in self.result_frame.winfo_children():
+            widget.destroy()
 
-    def delete_contact(self):
-        self.clear_frame(self.main_frame)
+        # Search for contact
+        found = False
+        for contact_name, details in self.phonebook.items():
+            if name.lower() in contact_name.lower():
+                found = True
+                # Display contact details
+                details_frame = tk.Frame(
+                    self.result_frame,
+                    bg="#e6e6fa",  # Lavender
+                    padx=10,
+                    pady=10,
+                    relief=tk.GROOVE,
+                    bd=2
+                )
+                details_frame.pack(fill=tk.X, pady=5, padx=20)
+
+                tk.Label(
+                    details_frame,
+                    text=f"Name: {contact_name}",
+                    font=("Arial", 10, "bold"),
+                    bg="#e6e6fa"
+                ).pack(anchor="w")
+
+                for field, value in details.items():
+                    if field != "name":
+                        tk.Label(
+                            details_frame,
+                            text=f"{field.title()}: {value}",
+                            bg="#e6e6fa",
+                            font=("Arial", 10)
+                        ).pack(anchor="w")
+
+        if not found:
+            tk.Label(
+                self.result_frame,
+                text="No matching contacts found.",
+                bg="#f0f8ff",
+                font=("Arial", 12)
+            ).pack(pady=20)
+
+    def delete_contact_screen(self):
+        """Screen to delete contacts"""
+        self.clear_screen()
+
+        # Main frame
+        main_frame = tk.Frame(self.root, bg="#f0f8ff", padx=20, pady=20)
+        main_frame.pack(expand=True, fill=tk.BOTH)
 
         # Title
-        tk.Label(self.main_frame, text="Delete Contact", font=("Arial", 14)).pack(pady=10)
+        title = tk.Label(
+            main_frame,
+            text="Delete Contact",
+            font=("Arial", 14, "bold"),
+            bg="#4682b4",
+            fg="white",
+            padx=10,
+            pady=10
+        )
+        title.pack(fill=tk.X, pady=(0, 20))
 
         # Delete frame
-        delete_frame = tk.Frame(self.main_frame)
-        delete_frame.pack(pady=10)
+        delete_frame = tk.Frame(main_frame, bg="#f0f8ff")
+        delete_frame.pack(pady=20)
 
-        tk.Label(delete_frame, text="Enter Name:").pack(side=tk.LEFT, padx=5)
-        delete_entry = tk.Entry(delete_frame, width=30)
-        delete_entry.pack(side=tk.LEFT, padx=5)
+        tk.Label(
+            delete_frame,
+            text="Enter Name:",
+            bg="#f0f8ff",
+            font=("Arial", 10)
+        ).pack(side=tk.LEFT, padx=5)
 
-        # Result label
-        result_label = tk.Label(self.main_frame, text="", wraplength=400)
-        result_label.pack(pady=10)
+        self.delete_entry = tk.Entry(delete_frame, width=30, font=("Arial", 10))
+        self.delete_entry.pack(side=tk.LEFT, padx=5)
 
         # Delete button
         delete_btn = tk.Button(
-            self.main_frame,
+            delete_frame,
             text="Delete",
-            command=lambda: self.perform_delete(delete_entry.get(), result_label),
-            width=15,
-            bg="#2196F3",
-            fg="white"
+            command=self.delete_contact,
+            width=10,
+            bg="#cd5c5c",
+            fg="white",
+            font=("Arial", 10)
         )
-        delete_btn.pack(pady=5)
+        delete_btn.pack(side=tk.LEFT, padx=5)
+
+        # Result label
+        self.delete_result = tk.Label(
+            main_frame,
+            text="",
+            bg="#f0f8ff",
+            font=("Arial", 10)
+        )
+        self.delete_result.pack(pady=10)
 
         # Back button
         back_btn = tk.Button(
-            self.main_frame,
+            main_frame,
             text="Back to Menu",
-            command=self.back_to_main,
+            command=self.create_main_menu,
             width=15,
-            bg="#f44336",
-            fg="white"
+            bg="#cd5c5c",
+            fg="white",
+            font=("Arial", 10)
         )
-        back_btn.pack(pady=5)
+        back_btn.pack(pady=20)
 
-    def perform_delete(self, name, result_label):
+    def delete_contact(self):
+        """Delete a contact from phonebook"""
+        name = self.delete_entry.get().strip()
+
         if not name:
             messagebox.showerror("Error", "Please enter a name to delete!")
             return
 
         if name in self.phonebook:
-            del self.phonebook[name]
-            result_label.config(text=f"Contact for {name} deleted successfully!", fg="green")
+            if messagebox.askyesno("Confirm", f"Delete contact for {name}?"):
+                del self.phonebook[name]
+                self.save_contacts()
+                self.delete_result.config(
+                    text=f"Contact for {name} deleted successfully!",
+                    fg="green"
+                )
         else:
-            result_label.config(text="Contact not found.", fg="red")
-
-    def about_developer(self):
-        self.clear_frame(self.main_frame)
-
-        # Title
-        tk.Label(self.main_frame, text="About Developer", font=("Arial", 14)).pack(pady=10)
-
-        # Developer info
-        info = "This Phonebook Management System is developed by Hossain Mohammad Jayed."
-        tk.Label(self.main_frame, text=info, wraplength=400).pack(pady=20)
-
-        # Back button
-        back_btn = tk.Button(
-            self.main_frame,
-            text="Back to Menu",
-            command=self.back_to_main,
-            width=15,
-            bg="#f44336",
-            fg="white"
-        )
-        back_btn.pack(pady=10)
+            self.delete_result.config(
+                text="Contact not found.",
+                fg="red"
+            )
 
     def exit_app(self):
+        """Exit the application"""
         if messagebox.askokcancel("Exit", "Are you sure you want to exit?"):
             self.root.destroy()
 
