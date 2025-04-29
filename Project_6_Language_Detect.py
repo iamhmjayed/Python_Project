@@ -1,11 +1,8 @@
-#Project_6_Language_Detect
-
 from langdetect import detect
+import tkinter as tk
+from tkinter import messagebox, ttk
 
-a = input("What is your name ? ")
-print (f"Welcome {a} to Lets Detect Your Language")
-print("...........................................")
-
+# Language dictionary
 lang_dict = {
     'af': 'Afrikaans',
     'ar': 'Arabic',
@@ -64,11 +61,61 @@ lang_dict = {
     'zh-tw': 'Chinese (Traditional)'
 }
 
-text = input("Enter any Text in any Language: ")
 
-language_code = detect(text)
+def detect_language():
+    text = text_entry.get("1.0", tk.END).strip()
+    name = name_entry.get().strip()
 
-language_name = lang_dict.get(language_code, "Unknown language")
+    if not name:
+        messagebox.showwarning("Warning", "Please enter your name")
+        return
 
-print(f"The detected language code is: {language_code}")
-print(f"The detected language is: {language_name}")
+    if not text:
+        messagebox.showwarning("Warning", "Please enter some text to detect")
+        return
+
+    try:
+        language_code = detect(text)
+        language_name = lang_dict.get(language_code, "Unknown Language")
+        result_label.config(text=f"Hello {name}! The detected language is: {language_name}")
+    except:
+        messagebox.showerror("Error", "Could not detect the language. Please try with different text.")
+
+
+# Create main window
+root = tk.Tk()
+root.title("Language Detector")
+root.geometry("500x400")
+
+# Welcome label
+welcome_label = tk.Label(root, text="Welcome to Lets Detect Your Language", font=("Arial", 14, "bold"))
+welcome_label.pack(pady=10)
+
+# Separator
+ttk.Separator(root, orient='horizontal').pack(fill='x', padx=20, pady=5)
+
+# Name entry
+name_frame = tk.Frame(root)
+name_frame.pack(pady=10)
+
+tk.Label(name_frame, text="What is your name?").pack(side=tk.LEFT)
+name_entry = tk.Entry(name_frame, width=30)
+name_entry.pack(side=tk.LEFT, padx=10)
+
+# Text entry
+text_frame = tk.Frame(root)
+text_frame.pack(pady=10)
+
+tk.Label(text_frame, text="Enter text in any language:").pack()
+text_entry = tk.Text(text_frame, width=50, height=8)
+text_entry.pack()
+
+# Detect button
+detect_button = tk.Button(root, text="Detect Language", command=detect_language, bg="#4CAF50", fg="white")
+detect_button.pack(pady=15)
+
+# Result label
+result_label = tk.Label(root, text="", font=("Arial", 12))
+result_label.pack(pady=10)
+
+root.mainloop()
