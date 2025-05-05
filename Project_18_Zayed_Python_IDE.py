@@ -7,13 +7,14 @@ import sys
 import platform
 import threading
 import webbrowser
+from PIL import ImageTk, Image
 
 
 class PythonIDE:
     def __init__(self, root):
         # Set up the main window
         self.root = root
-        self.root.title("ZAYED PYTHON IDE")
+        self.root.title("ZAYEDs PYTHON IDE")
         self.root.geometry("1400x800")
         self.root.minsize(1000, 600)
 
@@ -98,23 +99,55 @@ class PythonIDE:
             bg_canvas.create_rectangle(0, y1, 1400, y2, fill=color, outline="")
 
     def create_header(self):
-        """Create the title header"""
-        header = tk.Frame(self.main_frame, bg="#F5F5F5")
-        header.pack(fill="x", pady=(10, 15))
+        """Create the header with logo and title"""
+        # Header frame
+        self.header = tk.Frame(self.main_frame, bg="#F5F5F5")
+        self.header.pack(fill=tk.X, pady=5)
+
+        # Container for logo and title
+        title_container = tk.Frame(self.header, bg="#F5F5F5")
+        title_container.pack(expand=True)
+
+        # Add logo
+        try:
+            logo_path = "ZAYED_PYTHON_IDE.png"  # Make sure this file exists in your directory
+            if os.path.exists(logo_path):
+                logo_img = Image.open(logo_path)
+                logo_img = logo_img.resize((40, 40), Image.LANCZOS)  # Resize as needed
+                self.logo_photo = ImageTk.PhotoImage(logo_img)
+                logo_label = tk.Label(
+                    title_container,
+                    image=self.logo_photo,
+                    bg="#F5F5F5"
+                )
+                logo_label.image = self.logo_photo  # Keep reference
+                logo_label.pack(side=tk.LEFT, padx=(0, 10))
+            else:
+                raise FileNotFoundError(f"Logo file not found at {logo_path}")
+        except Exception as e:
+            print(f"Logo error: {str(e)}")
+            # Fallback to text if image fails
+            logo_label = tk.Label(
+                title_container,
+                text="[LOGO]",
+                bg="#F5F5F5",
+                fg="red"
+            )
+            logo_label.pack(side=tk.LEFT)
 
         # Main title
         title = tk.Label(
-            header,
+            title_container,
             text="ZAYED PYTHON IDE",
             font=self.title_font,
             fg=self.header_colors["editor"],
             bg="#F5F5F5"
         )
-        title.pack(expand=True)
+        title.pack(side=tk.LEFT)
 
         # Subtitle
         subtitle = tk.Label(
-            header,
+            self.header,
             text="Professional Python Development Environment",
             font=("Segoe UI", 10),
             fg="#666666",
