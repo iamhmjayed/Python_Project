@@ -1,39 +1,63 @@
-# Import OpenCV library
 import cv2
+import time
 
-# === Load the pre-trained Haar Cascade Face Detector ===
-# This file contains the data to detect human faces
-face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# === Open the webcam (0 is the default camera) ===
-camera = cv2.VideoCapture(0)
+def main():
+    # Load the Haar Cascade face detector
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# === Keep running until we manually stop it ===
-while True:
-    # Read the current frame from the webcam
-    success, frame = camera.read()
+    # Start webcam
+    cap = cv2.VideoCapture(0)
 
-    # Convert the frame to grayscale (face detection works better on gray images)
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    if not cap.isOpened():
+        print("❌ Error: Cannot access webcam.")
+        return
 
-    # Detect faces in the grayscale image
-    faces = face_detector.detectMultiScale(
-        gray_frame,      # Input image
-        scaleFactor=1.1, # How much the image size is reduced at each image scale
-        minNeighbors=4   # How many neighbors each candidate rectangle should have to retain it
-    )
+    print("🎥 Face detection started. Press 'q' to quit.")
 
-    # Draw a rectangle around each detected face
-    for (x, y, width, height) in faces:
-        cv2.rectangle(frame, (x, y), (x + width, y + height), color=(255, 0, 0), thickness=2)
+    # For FPS calculation
+    prev_time = 0
 
-    # Show the video with rectangles drawn
-    cv2.imshow('🧠 Face Detection with OpenCV', frame)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("❌ Error: Can't receive frame.")
+            break
 
-    # If user presses 'q', break the loop and exit
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # Convert to grayscale
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-# === Cleanup: release the camera and close all OpenCV windows ===
-camera.release()
-cv2.destroyAllWindows()
+        # Detect faces
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+        # Draw rectangles and add face count text
+        face_count = len(faces)
+        for (x, y, w, h) in faces:
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(frame, "Face", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        # Show face count on frame
+        cv2.putText(frame, f"Faces detected: {face_count}", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+
+        # FPS Calculation
+        current_time = time.time()
+        fps = 1 / (current_time - prev_time) if prev_time != 0 else 0
+        prev_time = current_time
+        cv2.putText(frame, f"FPS: {int(fps)}", (10, 60),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2)
+
+        # Show video
+        cv2.imshow("🧠 Enhanced Face Detection", frame)
+
+        # Press 'q' to quit
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    # Cleanup
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()
